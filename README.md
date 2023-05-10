@@ -114,3 +114,11 @@ wireguard-server : Install wireguard package -----------------------------------
 wireguard-server : (re)enable and (re)start wireguard service ----------------------------------------------------- 1.20s
 Gathering Facts --------------------------------------------------------------------------------------------------- 0.60s
 ```
+
+---
+```text
+┌───────────────────────┐       ┌──────────────────────────────┐
+│ Install wireguard via │───────►       │ Generate sever config        │
+│ package manager.      ├ i.e. /etc/wireguard/wg0.conf │
+└───────────────────────┘       └──────────────────────────────┘
+```
