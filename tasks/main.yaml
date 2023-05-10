@@ -1,0 +1,5 @@
+- import_tasks: "1-install.yaml"
+- import_tasks: "2-keys.yaml"
+- import_tasks: "3-configure.yaml"
+- import_tasks: "4-clients.yaml"
+- import_tasks: "5-restart.yaml"

@@ -1,0 +1,11 @@
+- name: "Copy wireguard configuration to remote"
+  become: yes
+  ansible.builtin.template:
+    src: "../templates/server.conf.j2"
+    dest: "/etc/wireguard/wg0.conf"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  tags:
+    - "configure"
+    - "server"

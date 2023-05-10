@@ -1,0 +1,39 @@
+#
+# This is the configuration file for the WireGuard VPN client.
+#
+[Interface]
+  #
+  # Private key for the client side
+  #
+  PrivateKey = {{ client_private_key.results[index].stdout }}
+
+  #
+  # Address is the IP address that the client will use on the VPN
+  #
+  Address = {{ item.address }}
+
+  #
+  # DNS servers to set on the client side
+  #
+  DNS = {{ wireguard.dns_servers | join(",") }}
+
+[Peer]
+  #
+  # Public key from the server side
+  #
+  PublicKey = {{ server_public_key.stdout }}
+
+  #
+  # Allowed IPs is the IP range that the client is allowed to route through the VPN.
+  #
+  AllowedIPs = {{ wireguard.server.cidr }},{{ wireguard.dns_servers | join(",") }},{{ wireguard.server.routes | join(",") }}
+
+  #
+  # Endpoint is the public IP address of the server and the port that the server is listening on
+  #
+  Endpoint = {{ wireguard.server.public_address }}:{{ wireguard.server.public_port }}
+
+  #
+  # PersistentKeepalive is the interval at which the client will send a keepalive message to the server
+  #
+  PersistentKeepalive = 15

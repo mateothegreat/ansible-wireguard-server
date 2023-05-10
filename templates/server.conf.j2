@@ -1,0 +1,18 @@
+[Interface]
+PrivateKey = {{ server_private_key.stdout }}
+Address = {{ wireguard.server.address }}
+ListenPort = {{ wireguard.server.public_port }}
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE # Remove forwarding when VPN is shutdown
+SaveConfig = false
+
+{% for peer in wireguard.clients.peers %}
+#
+# {{ peer.name }}
+#
+[Peer]
+PublicKey = {{ client_public_key.results[loop.index-1].stdout }}
+AllowedIPs = {{ peer.address }}
+{% endfor %}
+
+

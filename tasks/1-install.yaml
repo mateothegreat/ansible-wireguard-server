@@ -1,0 +1,8 @@
+- name: "Install wireguard package"
+  become: yes
+  ansible.builtin.apt:
+    name: "wireguard"
+    state: present
+    update_cache: yes
+  tags:
+    - "install"

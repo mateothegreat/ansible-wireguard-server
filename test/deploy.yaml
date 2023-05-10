@@ -1,0 +1,30 @@
+- hosts: "bastion"                                    # This is the host that we will be running the role on.
+  module_defaults:                                    # Configure the module defaults.
+    ansible.builtin.setup:                            # Configure the setup module defaults.
+      gather_subset:                                  # This is a list of facts that will be gathered (we don't need this so let's speed things up).
+        - "!min"                                      # Ignore the minimum facts..
+        - "!all"                                      # and then ignore all remaining facts.
+  roles:                                              # This is a list of roles that will be run.
+    - name: "wireguard-server"                        # This is the name of the role.
+      vars:                                           # These are the variables that will be passed to the role.
+        wireguard:                                    # This is the wireguard configuration passed to the role.
+          dns_servers:                                # This is a list of DNS servers that the wireguard clients will use.
+            - "168.63.129.16"                         # Azure private zone DNS resolver.
+            - "1.1.1.1"                               # Cloudflare DNS resolver.
+          server:                                     # This is the server side configuration.
+            interface_name: "wg0"                     # This is the name of the wireguard interface server side.
+            cidr: "172.172.0.0/22"                    # This is the CIDR block that the wireguard server will use (/22 has the range of 172.172.0.0 - 172.172.3.255).
+            address: "172.172.0.1/32"                 # This is the IP address that the wireguard server will assume.
+            public_address: "bastion.matthewdavis.io" # This is the public IP address or hostname that the wireguard server is listening on.
+            public_port: 51820                        # This is the port that the wireguard server will listen on.
+            routes:                                   # This is a list of CIDR blocks that will be routed through the wireguard clients.
+              - "10.1.0.0/24"                         # This is a CIDR block that will be routed through the wireguard clients.
+          clients:                                    # This is the client side configurations.
+            output_path: "/tmp/wireguard-clients"     # This is the path where the client config files will be written to.
+            peers:                                    # This is a list of clients that will be able to connect to the server.
+              - name: "matthew@matthewdavis.io"       # This is the name of the client config file (mainly for documentation purposes).
+                address: "172.172.0.10/32"            # This is the IP address that the end users wireguard client will assume.
+              - name: "it@aint.easy"
+                address: "172.172.0.11/32"
+
+
