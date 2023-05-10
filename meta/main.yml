@@ -1,0 +1,19 @@
+galaxy_info:
+  namespace: mateothegreat
+  role_name: wireguard-server
+  description: Wireguard via Ansible like a boss.
+  homepage: "https://matthewdavis.io/wireguard/"
+  repository: "https://github.com/mateothegreat/ansible-wireguard-server"
+  documentation: "https://github.com/mateothegreat/ansible-wireguard-server/blob/master/README.md"
+  issues: "https://github.com/mateothegreat/ansible-wireguard-server/issues"
+  license: MIT
+  min_ansible_version: 2.8
+  platforms:
+    - name: Debian
+      versions:
+        - all
+    - name: Ubuntu
+      versions:
+        - all
+  galaxy_tags:
+    - wireguard
