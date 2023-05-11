@@ -1,0 +1,32 @@
+- name: "Create client configuration output path (if necessary)"
+  become: yes
+  ansible.builtin.file:
+    path: "{{ wireguard.clients.output_path }}"
+    state: "directory"
+  tags:
+    - "clients"
+
+- name: "Generate new client yaml configurations (if they do not already exist)"
+  become: yes
+  ansible.builtin.template:
+    src: "../templates/client.yaml"
+    dest: "{{ wireguard.clients.output_path }}/{{ item.key }}.yaml"
+  when: wireguard.clients.output_path + '/' + item.key + '.yaml' not in lookup('fileglob', wireguard.clients.output_path + '/*.conf', wantlist=True)
+  loop: "{{ wireguard.clients.peers | dict2items }}"
+  tags:
+    - "clients"
+
+- name: "Find all client yaml configurations"
+  ansible.builtin.find:
+    paths: "{{ wireguard.clients.output_path }}"
+    patterns: "*.yaml"
+  register: client_yaml_files
+  tags:
+    - "clients"
+
+- name: "Calculate client configuration files that need to be generated or updated"
+  include_tasks: "5-generate-client.yaml"
+  vars:
+  loop: "{{ client_yaml_files.files }}"
+  tags:
+    - "clients"

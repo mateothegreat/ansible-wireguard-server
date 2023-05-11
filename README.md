@@ -4,37 +4,61 @@ This ansible role deploys a wireguard server and generates client configurations
 
 ## Requirements
 
+- GNU `make` (`sudo apt install gettext` or `brew install gettext`)
+- Python >= 3.x
 - [ansible](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html)
 
 ## Usage
 
-Create a file called `deploy.yaml` with the following contents:
+### Command Shortcuts
+
+The following commands are available via the [Makefile](Makefile):
+
+#### Server Only Commands
+
+| Command        | Description                                                        |
+|----------------|--------------------------------------------------------------------|
+| `make`         | Installs and configures Wireguard end-to-end (does not overwrite). |
+| `make setup`   | Sets up python dependencies and virtual environment.               |
+| `make reset`   | __Nukes__ all traces of Wireguard on all nodes.                    |
+| `make server`  | Install Wireguard on the server and configure it (no clients).     |
+| `make restart` | Restart the Wireguard service service side.                        |
+
+#### Client Configurations Only Commands
+
+| Command        | Description                                                              |
+|----------------|--------------------------------------------------------------------------|
+| `make clients` | Generate client configuration files and update the server [Peer] blocks. |
+
+### Configuration
+
+Create a file called `playbook.yaml` with the following contents:
 
 ```yaml
 - hosts: "bastion"                                    # This is the host that we will be running the role on.
-  module_defaults:                                    # Configure the module defaults.
-    ansible.builtin.setup:                            # Configure the setup module defaults.
-      gather_subset:                                  # This is a list of facts that will be gathered (we don't need this so let's speed things up).
+  module_defaults: # Configure the module defaults.
+    ansible.builtin.setup: # Configure the setup module defaults.
+      gather_subset: # This is a list of facts that will be gathered (we don't need this so let's speed things up).
         - "!min"                                      # Ignore the minimum facts..
         - "!all"                                      # and then ignore all remaining facts.
-  roles:                                              # This is a list of roles that will be run.
+  roles: # This is a list of roles that will be run.
     - name: "wireguard-server"                        # This is the name of the role.
-      vars:                                           # These are the variables that will be passed to the role.
-        wireguard:                                    # This is the wireguard configuration passed to the role.
-          dns_servers:                                # This is a list of DNS servers that the wireguard clients will use.
+      vars: # These are the variables that will be passed to the role.
+        wireguard: # This is the wireguard configuration passed to the role.
+          dns_servers: # This is a list of DNS servers that the wireguard clients will use.
             - "168.63.129.16"                         # Azure private zone DNS resolver.
             - "1.1.1.1"                               # Cloudflare DNS resolver.
-          server:                                     # This is the server side configuration.
+          server: # This is the server side configuration.
             interface_name: "wg0"                     # This is the name of the wireguard interface server side.
             cidr: "172.172.0.0/22"                    # This is the CIDR block that the wireguard server will use (/22 has the range of 172.172.0.0 - 172.172.3.255).
             address: "172.172.0.1/32"                 # This is the IP address that the wireguard server will assume.
             public_address: "bastion.matthewdavis.io" # This is the public IP address or hostname that the wireguard server is listening on.
             public_port: 51820                        # This is the port that the wireguard server will listen on.
-            routes:                                   # This is a list of CIDR blocks that will be routed through the wireguard clients.
+            routes: # This is a list of CIDR blocks that will be routed through the wireguard clients.
               - "10.1.0.0/24"                         # This is a CIDR block that will be routed through the wireguard clients.
-          clients:                                    # This is the client side configurations.
+          clients: # This is the client side configurations.
             output_path: "/tmp/wireguard-clients"     # This is the path where the client config files will be written to.
-            peers:                                    # This is a list of clients that will be able to connect to the server.
+            peers: # This is a list of clients that will be able to connect to the server.
               - name: "matthew@matthewdavis.io"       # This is the name of the client config file (mainly for documentation purposes).
                 address: "172.172.0.10/32"            # This is the IP address that the end users wireguard client will assume.
               - name: "it@aint.easy"
@@ -44,7 +68,7 @@ Create a file called `deploy.yaml` with the following contents:
 For your convenience, you can use the following references:
 
 * For an inventory reference, see [test/inventory.yaml](test/inventory.yaml).
-* For a playbook reference, see [test/deploy.yaml](test/deploy.yaml).
+* For a playbook reference, see [test/playbook.yaml](test/playbook.yaml).
 
 ### End-to-end wireguard server deployment
 
@@ -52,7 +76,7 @@ To deploy the wireguard server, generate keys, configure, and
 generate client configurations, run the following command:
 
 ```bash
-ansible-playbook -i inventory.yaml deploy.yaml
+make
 ```
 
 Example output:
@@ -77,18 +101,18 @@ wireguard-server : Generate server private key ---------------------------------
 wireguard-server : Generate server public key --------------------------------------------------------------------- 0.17s
 ```
 
-### Install wireguard package only
+### Install or upgrade the wireguard package only
 
 To install or upgrade the wireguard package only, run the following command:
 
 ```bash
-ansible-playbook -i inventory.yaml deploy.yaml --tags install
+make install
 ```
 
 Example output:
 
 ```bash
-../ansible 🌱 main [!+] ➜ venv/bin/ansible-playbook -i inventory.yaml deploy.yaml --tags install
+ansible-playbook -i inventory.yaml deploy.yaml --tags install
 
 PLAY [bastion] ***********************************************************************************************************
 
@@ -115,10 +139,12 @@ wireguard-server : (re)enable and (re)start wireguard service ------------------
 Gathering Facts --------------------------------------------------------------------------------------------------- 0.60s
 ```
 
----
-```text
-┌───────────────────────┐       ┌──────────────────────────────┐
-│ Install wireguard via │───────►       │ Generate sever config        │
-│ package manager.      ├ i.e. /etc/wireguard/wg0.conf │
-└───────────────────────┘       └──────────────────────────────┘
+### Uninstalling
+
+The following command will remove the wireguard package and all configuration files:
+
+> THIS IS PERMANENT AND YOU WILL HAVE TO REGENERATE ALL KEYS AND CONFIGURATION FILES FOR CLIENTS!
+
+```bash
+make reset
 ```

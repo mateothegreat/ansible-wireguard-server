@@ -1,0 +1,32 @@
+- name: "Disable and stop the wireguard service"
+  become: yes
+  ansible.builtin.systemd:
+    name: "wg-quick@{{ wireguard.server.interface_name }}.service"
+    enabled: "no"
+    state: "stopped"
+  ignore_errors: true
+  tags:
+    - "reset"
+
+- name: "Remove wireguard package"
+  become: yes
+  ansible.builtin.apt:
+    name:
+    - "wireguard"
+    - "wireguard-tools"
+    autoremove: true
+    purge: true
+    state: absent
+  tags:
+    - "reset"
+
+- name: "Remove wireguard server & client configuration files in the output paths"
+  become: yes
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: "absent"
+  loop:
+    - "{{ wireguard.server.path }}/{{ wireguard.server.interface_name }}.conf"
+    - "{{ wireguard.clients.output_path }}"
+  tags:
+    - "reset"

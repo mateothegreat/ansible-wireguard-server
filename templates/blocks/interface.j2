@@ -1,0 +1,7 @@
+[Interface]
+PrivateKey = {{ lookup('pipe', 'wg genkey') }}
+Address = {{ wireguard.server.address }}
+ListenPort = {{ wireguard.server.public_port }}
+PostUp = iptables -A FORWARD -i %i -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+PostDown = iptables -D FORWARD -i %i -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE # Remove forwarding when VPN is shutdown
+SaveConfig = false

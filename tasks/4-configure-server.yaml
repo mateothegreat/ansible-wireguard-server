@@ -1,0 +1,34 @@
+- name: "Create wireguard server configuration output path (if necessary)"
+  become: yes
+  ansible.builtin.file:
+    path: "{{ wireguard.server.path }}"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+    state: "directory"
+  tags:
+    - "install"
+    - "server"
+
+- name: "Copy wireguard configuration to remote"
+  become: yes
+  ansible.builtin.template:
+    src: "../templates/server.conf.j2"
+    dest: "{{ wireguard.server.path }}/{{ wireguard.server.interface_name }}.conf"
+    owner: "root"
+    group: "root"
+    mode: "0600"
+  when: not lookup('file', "{{ wireguard.server.path }}/{{ wireguard.server.interface_name }}.conf", errors='ignore')
+  tags:
+    - "install"
+    - "server"
+
+- name: "Generate server interface configuration block"
+  become: yes
+  ansible.builtin.blockinfile:
+    path: "{{ wireguard.server.path }}/{{ wireguard.server.interface_name }}.conf"
+    block: "{{ lookup('template', './templates/blocks/interface.j2') }}"
+    insertafter: "^# ANSIBLE MANAGED BLOCK start server interface$"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK server interface"
+  tags:
+    - "server"

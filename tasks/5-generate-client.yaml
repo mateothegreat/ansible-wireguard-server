@@ -1,0 +1,40 @@
+- name: "Read client yaml configuration file"
+  become: yes
+  ansible.builtin.shell:
+    cmd: "cat {{ item.path }}"
+  register: client_configuration
+  tags:
+    - "clients"
+
+- name: "Read client yaml configuration file"
+  become: yes
+  ansible.builtin.shell:
+    cmd: "wg showconf {{ wireguard.server.interface_name }} | grep PrivateKey | awk -F ' ' '{print $3}'"
+  register: server_private_key
+  tags:
+    - "clients"
+
+- name: "Convert client yaml configuration file to dictionary"
+  ansible.builtin.set_fact:
+    client_configuration: "{{ client_configuration.stdout | from_yaml }}"
+  tags:
+    - "clients"
+
+- name: "Generate wireguard client .conf files for user side importing"
+  become: yes
+  ansible.builtin.template:
+    src: "../templates/client.conf.j2"
+    dest: "{{ wireguard.clients.output_path }}/{{ client_configuration.name }}.conf"
+  when: item.path not in lookup('fileglob', wireguard.clients.output_path + '/*.conf', wantlist=True)
+  tags:
+    - "clients"
+
+- name: "Generate client peer configuration blocks"
+  become: yes
+  ansible.builtin.blockinfile:
+    path: "{{ wireguard.server.path }}/{{ wireguard.server.interface_name }}.conf"
+    block: "{{ lookup('template', './templates/blocks/peer.j2') }}"
+    insertafter: "^# ANSIBLE MANAGED BLOCK start peers$"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK peer for {{ client_configuration.name }}"
+  tags:
+    - "clients"

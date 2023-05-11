@@ -1,0 +1,3 @@
+[Peer]
+PublicKey = {{ lookup('pipe', "echo {{ client_configuration.private_key }} | wg pubkey") }}
+AllowedIPs = {{ client_configuration.address }}

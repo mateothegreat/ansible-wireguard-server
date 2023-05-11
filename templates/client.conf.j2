@@ -5,12 +5,12 @@
   #
   # Private key for the client side
   #
-  PrivateKey = {{ client_private_key.results[index].stdout }}
+  PrivateKey = {{ client_configuration.private_key }}
 
   #
   # Address is the IP address that the client will use on the VPN
   #
-  Address = {{ item.address }}
+  Address = {{ client_configuration.address }}
 
   #
   # DNS servers to set on the client side
@@ -21,7 +21,7 @@
   #
   # Public key from the server side
   #
-  PublicKey = {{ server_public_key.stdout }}
+  PublicKey = {{ lookup('pipe', 'echo ' + server_private_key.stdout + ' | wg pubkey') }}
 
   #
   # Allowed IPs is the IP range that the client is allowed to route through the VPN.

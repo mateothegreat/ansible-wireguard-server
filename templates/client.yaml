@@ -1,0 +1,3 @@
+name: {{ item.key }}
+private_key: "{{ lookup('pipe', 'wg genkey') }}"
+address: {{ item.value.address }}
